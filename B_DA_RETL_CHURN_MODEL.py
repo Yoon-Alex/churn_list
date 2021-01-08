@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
-
-
 #===========================================================
 # File Name : B_DA_RETL_CHURN MODEL                           
 # Description :                                             
@@ -32,9 +29,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# In[ ]:
-
-
 def base_table(conn): 
     sql = """
     SELECT  *
@@ -43,19 +37,15 @@ def base_table(conn):
     
     df = pd.read_sql(sql, conn)
     return df[['reg_no','amt_day_cnt', 'avg_amt', 'avg_cnt', 'avg_mm_amt', 'avg_mm_cnt',
-               'bf_month_diff_amt', 'bf_month_diff_cnt', 'churn_yn', 'high_lw_term',
-               'join_term', 'last_xmit_date', 'm3_sd_amt', 'm3_sd_cnt', 'm_00_app_amt',
-               'm_00_app_cnt', 'm_01_app_amt', 'm_01_app_cnt', 'm_02_app_amt',
-               'm_02_app_cnt', 'm_03_app_amt', 'm_03_app_cnt', 'm_04_app_amt',
-               'm_04_app_cnt', 'm_05_app_amt', 'm_05_app_cnt', 'max_amt_month',
-               'min_amt_month', 'min_mm_amt', 'min_mm_cnt', 'min_xmit_date',
-               'month_cnt', 'mx_mm_amt', 'mx_mm_cnt', 'mx_xmit_date', 
-               'sd_amt', 'sd_mm_amt', 'sd_mm_cnt', 'sum_amt', 'sum_cnt',
-               'wk2_amt_diff', 'wk2_cnt_diff']]
-
-
-# In[ ]:
-
+           'bf_month_diff_amt', 'bf_month_diff_cnt', 'high_lw_term',
+           'join_term', 'last_xmit_date', 'm3_sd_amt', 'm3_sd_cnt', 'm_00_app_amt',
+           'm_00_app_cnt', 'm_01_app_amt', 'm_01_app_cnt', 'm_02_app_amt',
+           'm_02_app_cnt', 'm_03_app_amt', 'm_03_app_cnt', 'm_04_app_amt',
+           'm_04_app_cnt', 'm_05_app_amt', 'm_05_app_cnt', 'max_amt_month',
+           'min_amt_month', 'min_mm_amt', 'min_mm_cnt', 'min_xmit_date',
+           'month_cnt', 'mx_mm_amt', 'mx_mm_cnt', 'mx_xmit_date', 
+           'sd_amt', 'sd_mm_amt', 'sd_mm_cnt', 'sum_amt', 'sum_cnt',
+           'wk2_amt_diff', 'wk2_cnt_diff', 'churn_yn']]
 
 def reg_table(conn): 
     sql = """
@@ -99,9 +89,6 @@ def reg_table(conn):
     return df
 
 
-# In[ ]:
-
-
 def preprocess(month_tot, debit_retl):
     month_tot['reg_no'] = month_tot.reg_no.astype("str")
     
@@ -141,9 +128,6 @@ def preprocess(month_tot, debit_retl):
     return reg_churn_model
 
 
-# In[ ]:
-
-
 def main():
     conn = jdb.connect('','',['[id]', '[password]'],'[jar file]')
     
@@ -157,9 +141,7 @@ def main():
     y = reg_churn_model['churn_yn'].values
     X = reg_churn_model.drop(['reg_no','churn_yn'], axis = 1).values
     
-    rf = RandomForestClassifier(n_estimators=100, random_state=1)
-    y_prob = rf.predict_proba(X)
-    y_pred = (y_prob[:,1] >= 0.35).astype("int")
+    rf = RandomForestClassifier(n_estimators=100, max_depth=16, random_state=1)
     
     result = []
     for idx, (train_index, test_index) in enumerate(skf.split(X, y)):
@@ -168,7 +150,7 @@ def main():
 
         rf.fit(X_train, y_train)
         y_prob = rf.predict_proba(X_test)
-        y_pred = (y_prob[:,1] >= 0.35).astype("int")
+        y_pred = (y_prob[:,1] >= 0.35).astype("int") # cutoff : 0.35
         
         result.append([idx ,accuracy_score(y_test, y_pred), 
                      precision_score(y_test, y_pred), 
@@ -181,6 +163,10 @@ def main():
     model_result.columns = ['idx','accuracy', 'precision','recall', 'f1_score', 'roc_auc_score']
     model_result.to_csv(f"model_result_{datetime.datetime.now().strftime('%Y%m%d')}")
     
+    # 전체 데이터 재학습                    
+    y_prob = rf.predict_proba(X)
+    y_pred = (y_prob[:,1] >= 0.35).astype("int") # cutoff : 0.35
+                            
     # 모델 저장
     joblib.dump(rf, 'B_DA_RETL_CHURN_MODEL.pkl')
 

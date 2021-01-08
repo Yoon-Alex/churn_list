@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 #===========================================================
 # File Name : B_DA_RETL_CHURN
 # Description :                                             
@@ -25,10 +22,6 @@ import joblib
 
 from sklearn.ensemble import RandomForestClassifier
 
-
-# In[ ]:
-
-
 def churn_base(conn): 
     sql = """
     SELECT  *
@@ -37,7 +30,7 @@ def churn_base(conn):
     
     df = pd.read_sql(sql, conn)
     return df[['reg_no','amt_day_cnt', 'avg_amt', 'avg_cnt', 'avg_mm_amt', 'avg_mm_cnt',
-               'bf_month_diff_amt', 'bf_month_diff_cnt', 'churn_yn', 'high_lw_term',
+               'bf_month_diff_amt', 'bf_month_diff_cnt', 'high_lw_term',
                'join_term', 'last_xmit_date', 'm3_sd_amt', 'm3_sd_cnt', 'm_00_app_amt',
                'm_00_app_cnt', 'm_01_app_amt', 'm_01_app_cnt', 'm_02_app_amt',
                'm_02_app_cnt', 'm_03_app_amt', 'm_03_app_cnt', 'm_04_app_amt',
@@ -46,9 +39,6 @@ def churn_base(conn):
                'month_cnt', 'mx_mm_amt', 'mx_mm_cnt', 'mx_xmit_date', 
                'sd_amt', 'sd_mm_amt', 'sd_mm_cnt', 'sum_amt', 'sum_cnt',
                'wk2_amt_diff', 'wk2_cnt_diff']]
-
-
-# In[ ]:
 
 
 def reg_table(conn): 
@@ -93,9 +83,6 @@ def reg_table(conn):
     return df
 
 
-# In[ ]:
-
-
 def recent_sales(conn, args_mm): 
     # 가맹점 최근 실적
     sql = \ 
@@ -129,9 +116,6 @@ def recent_sales(conn, args_mm):
     """
     
     df = pd.read_sql(sql, conn)
-
-
-# In[ ]:
 
 
 def reg_info(conn): 
@@ -180,10 +164,6 @@ def reg_info(conn):
     
     return df
 
-
-# In[ ]:
-
-
 def preprocess(month_tot, debit_retl):
     month_tot['reg_no'] = month_tot.reg_no.astype("str")
     
@@ -209,7 +189,7 @@ def preprocess(month_tot, debit_retl):
     base_tot = base_tot[base_tot.cd_lv2_nm.notna()]
 
     # 운영했던 일자 수
-    base_tot['norm_wrk_day'] =     pd.to_datetime(base_tot.mx_xmit_date, format = "%Y%m%d") - pd.to_datetime(base_tot.min_xmit_date, format = "%Y%m%d") + np.timedelta64(1, 'D')
+    base_tot['norm_wrk_day'] = pd.to_datetime(base_tot.mx_xmit_date, format = "%Y%m%d") - pd.to_datetime(base_tot.min_xmit_date, format = "%Y%m%d") + np.timedelta64(1, 'D')
     base_tot['norm_wrk_day'] = base_tot.norm_wrk_day / np.timedelta64(1, 'D')
     
     # 매출일 수 / 운영일 수
@@ -222,10 +202,6 @@ def preprocess(month_tot, debit_retl):
     reg_churn_model['cd_lv2_nm_f'] = reg_churn.cd_lv2_nm.factorize()[0]
     
     return reg_churn_model
-
-
-# In[ ]:
-
 
 if __name__ == "__main__":
     conn = jdb.connect('','',['[id]', '[password]'],'[jar file]')
