@@ -141,7 +141,7 @@ def main():
     y = reg_churn_model['churn_yn'].values
     X = reg_churn_model.drop(['reg_no','churn_yn'], axis = 1).values
     
-    rf = RandomForestClassifier(n_estimators=100, max_depth=16, random_state=1)
+    rf = RandomForestClassifier(n_estimators=100, max_depth=14, max_features = 'sqrt', random_state=1)
     
     result = []
     for idx, (train_index, test_index) in enumerate(skf.split(X, y)):
